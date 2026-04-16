@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Engineer — 30-Day Mastery Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --surface3: #20253a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --muted: #6b7080;
+    --muted2: #8892a4;
+    --accent-blue: #4f8ef7;
+    --accent-blue-bg: rgba(79,142,247,0.1);
+    --accent-green: #3ecf8e;
+    --accent-green-bg: rgba(62,207,142,0.1);
+    --accent-amber: #f5a623;
+    --accent-amber-bg: rgba(245,166,35,0.1);
+    --accent-purple: #9b7ff4;
+    --accent-purple-bg: rgba(155,127,244,0.1);
+    --accent-teal: #2dd4bf;
+    --accent-teal-bg: rgba(45,212,191,0.1);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Sora', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; }
+
+  /* Layout */
+  .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .sidebar-logo { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .sidebar-logo .tag { font-family: var(--mono); font-size: 10px; color: var(--accent-blue); background: var(--accent-blue-bg); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
+  .sidebar-logo h1 { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .nav-section { padding: 0 12px; margin-bottom: 8px; }
+  .nav-label { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px; margin-bottom: 4px; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--radius-sm); cursor: pointer; color: var(--muted2); font-size: 13px; transition: all 0.15s; margin-bottom: 2px; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-blue-bg); color: var(--accent-blue); }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Progress widget in sidebar */
+  .sidebar-progress { margin: 16px 12px; background: var(--surface2); border-radius: var(--radius); padding: 14px; border: 1px solid var(--border); }
+  .sidebar-progress .sp-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .sidebar-progress .sp-num { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--accent-green); margin-bottom: 10px; }
+  .progress-track { height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: var(--accent-green); border-radius: 2px; transition: width 0.5s; }
+  .sp-sub { font-size: 11px; color: var(--muted); }
+
+  /* Main content */
+  .main { padding: 32px; overflow-x: hidden; }
+
+  /* Section visibility */
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .week-num { font-family: var(--mono); font-size: 11px; padding: 4px 9px; border-radius: 4px; font-weight: 500; }
+  .wn-blue { background: var(--accent-blue-bg); color: var(--accent-blue); }
+  .wn-green { background: var(--accent-green-bg); color: var(--accent-green); }
+  .wn-purple { background: var(--accent-purple-bg); color: var(--accent-purple); }
+  .wn-teal { background: var(--accent-teal-bg); color: var(--accent-teal); }
+  .card-title { font-size: 15px; font-weight: 500; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* Day tasks */
+  .day-block { border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; overflow: hidden; }
+  .day-block-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .day-label { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 36px; }
+  .day-title { font-size: 13px; font-weight: 500; flex: 1; }
+  .day-complete-btn { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border2); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+  .day-complete-btn.done { background: var(--accent-green); border-color: var(--accent-green); }
+  .day-complete-btn.done::after { content: ''; width: 6px; height: 4px; border-left: 1.5px solid #0d0f14; border-bottom: 1.5px solid #0d0f14; transform: rotate(-45deg) translate(1px,-1px); display: block; }
+  .day-tasks { padding: 12px 14px; }
+  .task-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+  .task-section { }
+  .ts-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 5px; }
+  .ts-text { font-size: 12px; color: var(--muted2); line-height: 1.55; }
+
+  /* Stat bar */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .stat-box .num { font-family: var(--mono); font-size: 24px; font-weight: 500; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .stat-box.blue .num { color: var(--accent-blue); }
+  .stat-box.green .num { color: var(--accent-green); }
+  .stat-box.amber .num { color: var(--accent-amber); }
+  .stat-box.purple .num { color: var(--accent-purple); }
+
+  /* Tools section */
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; transition: border-color 0.2s; }
+  .tool-card:hover { border-color: var(--border2); }
+  .tool-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .tool-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; font-weight: 500; flex-shrink: 0; }
+  .tool-name { font-size: 14px; font-weight: 500; }
+  .tool-type { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .tool-desc { font-size: 12px; color: var(--muted2); line-height: 1.6; margin-bottom: 10px; }
+  .tool-your-skill { font-size: 11px; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--surface2); color: var(--muted2); border-left: 2px solid var(--accent-green); }
+  .tool-your-skill strong { color: var(--accent-green); font-weight: 500; }
+
+  /* Glossary */
+  .glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .gloss-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .gloss-term { font-family: var(--mono); font-size: 13px; color: var(--accent-blue); font-weight: 500; margin-bottom: 6px; }
+  .gloss-def { font-size: 12px; color: var(--muted2); line-height: 1.6; }
+  .gloss-analogy { font-size: 11px; color: var(--accent-green); margin-top: 6px; font-style: italic; }
+
+  /* Section headers */
+  .sec-title { font-size: 18px; font-weight: 500; margin-bottom: 6px; }
+  .sec-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+  /* Pill tags */
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .pill { font-size: 11px; font-family: var(--mono); padding: 3px 9px; border-radius: 4px; }
+  .pill-blue { background: var(--accent-blue-bg); color: var(--accent-blue); }
+  .pill-green { background: var(--accent-green-bg); color: var(--accent-green); }
+  .pill-purple { background: var(--accent-purple-bg); color: var(--accent-purple); }
+  .pill-amber { background: var(--accent-amber-bg); color: var(--accent-amber); }
+  .pill-teal { background: var(--accent-teal-bg); color: var(--accent-teal); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* Today banner */
+  .today-banner { background: var(--accent-blue-bg); border: 1px solid rgba(79,142,247,0.2); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+  .tb-dot { width: 8px; height: 8px; background: var(--accent-blue); border-radius: 50%; flex-shrink: 0; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+  .tb-text { font-size: 13px; color: var(--accent-blue); }
+  .tb-text strong { font-weight: 500; }
+
+  /* Checklist style for week tasks */
+  .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .check-item:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border: 1.5px solid var(--border2); border-radius: 4px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .check-box.checked { background: var(--accent-green); border-color: var(--accent-green); }
+  .check-box.checked::after { content: ''; width: 5px; height: 3px; border-left: 1.5px solid #0d0f14; border-bottom: 1.5px solid #0d0f14; transform: rotate(-45deg) translate(0.5px,-0.5px); display: block; }
+  .check-text { font-size: 13px; color: var(--muted2); flex: 1; line-height: 1.5; }
+  .check-text.checked-text { text-decoration: line-through; color: var(--muted); }
+
+  /* Week progress mini bars */
+  .week-prog { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .wp-label { font-size: 11px; color: var(--muted); min-width: 80px; }
+  .wp-bar { flex: 1; height: 3px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+  .wp-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .wp-pct { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 30px; text-align: right; }
+
+  scrollbar-width: thin;
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="tag">DE / Tracker</div>
+    <h1>30-Day Mastery<br>Plan</h1>
+  </div>
+
+  <div class="sidebar-progress">
+    <div class="sp-label">Overall progress</div>
+    <div class="sp-num" id="overall-pct">0%</div>
+    <div class="progress-track"><div class="progress-fill" id="overall-bar" style="width:0%"></div></div>
+    <div class="sp-sub" id="overall-tasks">0 / 0 tasks done</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" onclick="show('dashboard')">
+      <div class="nav-dot" style="background:var(--accent-blue)"></div> Dashboard
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Weeks</div>
+    <div class="nav-item" onclick="show('week1')">
+      <div class="nav-dot" style="background:var(--accent-blue)"></div> Week 1 — Azure + Databricks
+    </div>
+    <div class="nav-item" onclick="show('week2')">
+      <div class="nav-dot" style="background:var(--accent-green)"></div> Week 2 — ETL + Snowflake
+    </div>
+    <div class="nav-item" onclick="show('week3')">
+      <div class="nav-dot" style="background:var(--accent-purple)"></div> Week 3 — Streaming + Fabric
+    </div>
+    <div class="nav-item" onclick="show('week4')">
+      <div class="nav-dot" style="background:var(--accent-teal)"></div> Week 4 — DevOps + Capstone
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Reference</div>
+    <div class="nav-item" onclick="show('tools')">
+      <div class="nav-dot" style="background:var(--accent-amber)"></div> Tools reference
+    </div>
+    <div class="nav-item" onclick="show('glossary')">
+      <div class="nav-dot" style="background:var(--muted)"></div> Glossary
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="section visible" id="section-dashboard">
+  <div class="today-banner">
+    <div class="tb-dot"></div>
+    <div class="tb-text"><strong>You know:</strong> Python · SQL · Excel · Pandas — great foundation. Use it daily.</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box blue"><div class="num">20</div><div class="lbl">work days</div></div>
+    <div class="stat-box green"><div class="num" id="dash-done">0</div><div class="lbl">tasks completed</div></div>
+    <div class="stat-box amber"><div class="num">7</div><div class="lbl">core tools</div></div>
+    <div class="stat-box purple"><div class="num">3–4h</div><div class="lbl">daily focus</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Weekly progress</div>
+    </div>
+    <div class="week-prog">
+      <div class="wp-label">Week 1 · Azure</div>
+      <div class="wp-bar"><div class="wp-fill" id="wb1" style="width:0%;background:var(--accent-blue)"></div></div>
+      <div class="wp-pct" id="wp1">0%</div>
+    </div>
+    <div class="week-prog">
+      <div class="wp-label">Week 2 · ETL</div>
+      <div class="wp-bar"><div class="wp-fill" id="wb2" style="width:0%;background:var(--accent-green)"></div></div>
+      <div class="wp-pct" id="wp2">0%</div>
+    </div>
+    <div class="week-prog">
+      <div class="wp-label">Week 3 · Streaming</div>
+      <div class="wp-bar"><div class="wp-fill" id="wb3" style="width:0%;background:var(--accent-purple)"></div></div>
+      <div class="wp-pct" id="wp3">0%</div>
+    </div>
+    <div class="week-prog">
+      <div class="wp-label">Week 4 · DevOps</div>
+      <div class="wp-bar"><div class="wp-fill" id="wb4" style="width:0%;background:var(--accent-teal)"></div></div>
+      <div class="wp-pct" id="wp4">0%</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Daily rhythm</div></div>
+    <div class="task-row">
+      <div class="task-section">
+        <div class="ts-label">Morning (1h)</div>
+        <div class="ts-text">Read official docs / Microsoft Learn / Databricks Academy. One concept only — go deep, not wide.</div>
+      </div>
+      <div class="task-section">
+        <div class="ts-label">Afternoon (2h)</div>
+        <div class="ts-text">Hands-on build session. Always have a terminal or notebook open. Write real code, not just tutorials.</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="task-row">
+      <div class="task-section">
+        <div class="ts-label">Evening (30 min)</div>
+        <div class="ts-text">Write 3–5 bullet notes on what you built. These become your interview answers.</div>
+      </div>
+      <div class="task-section">
+        <div class="ts-label">Your superpower</div>
+        <div class="ts-text">Your Pandas knowledge maps directly to PySpark. Your SQL maps directly to Snowflake. Always connect new tools to what you already know.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WEEK 1 -->
+<div class="section" id="section-week1">
+  <div class="sec-title">Week 1 — Azure Cloud + Databricks foundations</div>
+  <div class="sec-sub">Map your Python/SQL/Pandas skills into the cloud. Goal: run your first PySpark job reading from Azure Data Lake.</div>
+
+  <div class="card" id="week1-card">
+    <div class="card-header">
+      <div class="week-num wn-blue">W1</div>
+      <div><div class="card-title">Days 1–5 tasks</div><div class="card-sub">Check off each item as you complete it</div></div>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Create a free Azure account (portal.azure.com) and explore the dashboard</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Create an Azure Resource Group — think of it as a folder for all your project resources</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Spin up Azure Data Lake Storage Gen2 — upload a CSV file from your computer</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Sign up for Databricks Community Edition (free) — launch your first cluster</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Open a Databricks notebook — run: spark.read.csv("your-file") and print the schema</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Learn PySpark basics: .select(), .filter(), .groupBy(), .agg() — compare each to your Pandas equivalent</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Understand Unity Catalog: it's Databricks' governance layer (like a structured folder tree for tables)</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Port one of your existing Pandas scripts to PySpark — note lazy evaluation vs immediate execution</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Read: What is a Data Lakehouse? (Databricks blog, 10 min read)</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w1')"><div class="check-box"></div><div class="check-text">Write 5 bullet notes: what you learned, what confused you, what connects to your existing skills</div></div>
+
+    <div class="pill-row">
+      <span class="pill pill-blue">Azure Portal</span>
+      <span class="pill pill-blue">ADLS Gen2</span>
+      <span class="pill pill-blue">Databricks CE</span>
+      <span class="pill pill-blue">PySpark</span>
+      <span class="pill pill-blue">Unity Catalog</span>
+    </div>
+  </div>
+</div>
+
+<!-- WEEK 2 -->
+<div class="section" id="section-week2">
+  <div class="sec-title">Week 2 — ETL pipelines + Snowflake + Iceberg</div>
+  <div class="sec-sub">Build your first real end-to-end data pipeline. The medallion architecture is the most important pattern to master.</div>
+
+  <div class="card" id="week2-card">
+    <div class="card-header">
+      <div class="week-num wn-green">W2</div>
+      <div><div class="card-title">Days 6–10 tasks</div><div class="card-sub">Check off each item as you complete it</div></div>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Learn the Medallion architecture: Bronze (raw) → Silver (cleaned) → Gold (aggregated)</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Create 3 folders in your ADLS: /bronze, /silver, /gold</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Build Bronze layer: read raw CSV → write to Delta format (no transformation)</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Build Silver layer: clean nulls, fix data types, rename columns from Bronze</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Build Gold layer: aggregate Silver data into a business summary table</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Sign up for Snowflake trial (30-day free) — explore the UI and warehouses</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Create an external stage in Snowflake pointing to your ADLS — use COPY INTO to load data</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Write 5 SQL queries in Snowflake using your existing SQL knowledge</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Learn Iceberg: create an Iceberg table in Databricks, insert 100 rows</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w2')"><div class="check-box"></div><div class="check-text">Try time travel: SELECT * FROM my_table TIMESTAMP AS OF '2024-01-01' — verify it works</div></div>
+
+    <div class="pill-row">
+      <span class="pill pill-green">Delta Lake</span>
+      <span class="pill pill-green">Medallion Arch</span>
+      <span class="pill pill-green">Snowflake SQL</span>
+      <span class="pill pill-green">Apache Iceberg</span>
+      <span class="pill pill-green">COPY INTO</span>
+    </div>
+  </div>
+</div>
+
+<!-- WEEK 3 -->
+<div class="section" id="section-week3">
+  <div class="sec-title">Week 3 — Streaming + Microsoft Fabric + DevOps</div>
+  <div class="sec-sub">Real-time data is the steepest new concept. Take it slow on Day 11–12 — streaming fundamentally changes how you think about data flow.</div>
+
+  <div class="card" id="week3-card">
+    <div class="card-header">
+      <div class="week-num wn-purple">W3</div>
+      <div><div class="card-title">Days 11–15 tasks</div><div class="card-sub">Check off each item as you complete it</div></div>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Read: Batch vs Streaming — understand the core conceptual difference (event-by-event vs file-by-file)</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Create Azure Event Hubs namespace (free tier) — it's Kafka-compatible, similar concept</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Write a Python producer script that sends 50 mock JSON events to Event Hubs every second</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">In Databricks: use Structured Streaming to read from Event Hubs and print events to console</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Write streaming output to Delta table (Bronze layer) — verify rows appear in real-time</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Create a Microsoft Fabric free trial workspace (app.fabric.microsoft.com)</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Build a Fabric Pipeline that copies your Gold data from ADLS into a Fabric Lakehouse</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Connect Fabric Lakehouse to Power BI via Direct Lake mode — make one simple chart</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Set up Azure DevOps: create an organization, repo, and push your Databricks notebooks to it</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w3')"><div class="check-box"></div><div class="check-text">Write a basic YAML CI pipeline that triggers on push to main branch and runs a Python lint check</div></div>
+
+    <div class="pill-row">
+      <span class="pill pill-purple">Azure Event Hubs</span>
+      <span class="pill pill-purple">Structured Streaming</span>
+      <span class="pill pill-purple">MS Fabric</span>
+      <span class="pill pill-purple">OneLake</span>
+      <span class="pill pill-purple">YAML CI/CD</span>
+    </div>
+  </div>
+</div>
+
+<!-- WEEK 4 -->
+<div class="section" id="section-week4">
+  <div class="sec-title">Week 4 — Security + Agile + Capstone</div>
+  <div class="sec-sub">Tie everything together. The capstone project is your portfolio piece and your answer to every "give me an example" interview question.</div>
+
+  <div class="card" id="week4-card">
+    <div class="card-header">
+      <div class="week-num wn-teal">W4</div>
+      <div><div class="card-title">Days 16–20 tasks</div><div class="card-sub">Check off each item as you complete it</div></div>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">Learn RBAC in Azure: assign yourself Storage Blob Data Contributor role on ADLS</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">Set up a Managed Identity for Databricks — remove the storage account key, use identity instead</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">Disable public network access on your ADLS — verify your pipeline still works via managed identity</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">Learn Agile: what is a sprint, a user story, acceptance criteria, a retrospective</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">Create an Azure DevOps Board — add 5 backlog tasks for your capstone as proper user stories</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">CAPSTONE: Build complete pipeline — ingest CSV + Event stream → Bronze → Silver → Gold</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">CAPSTONE: Load Gold data into both Snowflake and Microsoft Fabric</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">CAPSTONE: Add CI/CD — push to Azure DevOps, pipeline runs automatically on commit</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">CAPSTONE: Secure everything — managed identity, no hardcoded keys, RBAC on all resources</div></div>
+    <div class="check-item" onclick="toggleCheck(this,'w4')"><div class="check-box"></div><div class="check-text">Write a README documenting your architecture, decisions made, and what you learned</div></div>
+
+    <div class="pill-row">
+      <span class="pill pill-teal">RBAC</span>
+      <span class="pill pill-teal">Managed Identity</span>
+      <span class="pill pill-teal">Delta Live Tables</span>
+      <span class="pill pill-teal">Databricks Workflows</span>
+      <span class="pill pill-teal">Code Review</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div class="section" id="section-tools">
+  <div class="sec-title">Tools reference</div>
+  <div class="sec-sub">Every tool in the job description — what it is, what it does, and how your existing skills connect.</div>
+
+  <div class="tools-grid">
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:var(--accent-blue-bg);color:var(--accent-blue);">AZ</div>
+        <div><div class="tool-name">Azure Databricks</div><div class="tool-type">Cloud data platform · Apache Spark</div></div>
+      </div>
+      <div class="tool-desc">A unified analytics platform built on Apache Spark. You write notebooks in Python/SQL, and Databricks runs your code across a cluster of machines — processing billions of rows in minutes instead of hours.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> Databricks notebooks look and feel like Jupyter. PySpark DataFrame API is 80% the same as Pandas — just distributed.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:#fff1f0;color:#c0392b;">SF</div>
+        <div><div class="tool-name">Snowflake</div><div class="tool-type">Cloud data warehouse · SQL</div></div>
+      </div>
+      <div class="tool-desc">A cloud-native data warehouse where you query massive datasets using standard SQL. It separates storage from compute — meaning you can scale query power independently of storage cost.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> You already know SQL. Snowflake SQL is standard ANSI SQL — just learn COPY INTO, stages, and virtual warehouses as new concepts.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:var(--accent-purple-bg);color:var(--accent-purple);">IC</div>
+        <div><div class="tool-name">Apache Iceberg</div><div class="tool-type">Open table format · Storage layer</div></div>
+      </div>
+      <div class="tool-desc">An open table format for huge datasets sitting in cloud storage. It gives your raw files superpowers: time travel (query old versions), schema evolution (add columns without breaking things), and hidden partitioning.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> Think of it like a smarter, versioned CSV with a built-in index. Your Pandas knowledge of DataFrames makes the concept intuitive.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:var(--accent-teal-bg);color:var(--accent-teal);">MF</div>
+        <div><div class="tool-name">Microsoft Fabric</div><div class="tool-type">Unified analytics platform · SaaS</div></div>
+      </div>
+      <div class="tool-desc">Microsoft's all-in-one analytics platform that combines data engineering, warehousing, real-time analytics, and Power BI into a single product. Built on OneLake — one storage lake for everything.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> Fabric Notebooks use PySpark — same as Databricks. If you know one, you can navigate the other quickly.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:var(--accent-amber-bg);color:var(--accent-amber);">EH</div>
+        <div><div class="tool-name">Azure Event Hubs</div><div class="tool-type">Streaming ingestion · Kafka-compatible</div></div>
+      </div>
+      <div class="tool-desc">A big data streaming platform that ingests millions of events per second. Think of it as a massive, highly durable message queue — producers send events, consumers process them in real-time.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> You can produce events with the Python azure-eventhub library — familiar territory. Consuming is new but follows a simple read loop pattern.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:var(--accent-blue-bg);color:var(--accent-blue);">AD</div>
+        <div><div class="tool-name">Azure DevOps</div><div class="tool-type">CI/CD + project management · DevOps</div></div>
+      </div>
+      <div class="tool-desc">Microsoft's DevOps platform combining Git repositories, CI/CD pipelines, Agile boards, and artifact storage. For data engineers it means automated testing and deployment of your notebooks and pipelines.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> If you know Git, you know 60% of Azure DevOps Repos. YAML pipelines are new syntax but logical once you understand the trigger → job → step structure.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:var(--accent-green-bg);color:var(--accent-green);">PS</div>
+        <div><div class="tool-name">PySpark</div><div class="tool-type">Distributed computing · Python API</div></div>
+      </div>
+      <div class="tool-desc">The Python API for Apache Spark — lets you write distributed data processing code using a DataFrame API. Transforms, joins, aggregations work across a cluster of machines instead of one computer.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> df.select() ≈ pandas df[[cols]], df.filter() ≈ df[condition], df.groupBy().agg() ≈ df.groupby().agg(). Almost a 1:1 translation.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon" style="background:rgba(255,255,255,0.05);color:var(--muted2);">DL</div>
+        <div><div class="tool-name">Delta Lake</div><div class="tool-type">Open storage format · ACID transactions</div></div>
+      </div>
+      <div class="tool-desc">An open-source storage layer that brings ACID transactions and versioning to data lakes. It's the default format in Databricks — your Parquet files get a transaction log that enables time travel, merge, and upsert operations.</div>
+      <div class="tool-your-skill"><strong>Your bridge:</strong> You write Delta tables the same way you'd write Parquet in Pandas/PySpark. The format handles the reliability layer automatically underneath.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- GLOSSARY -->
+<div class="section" id="section-glossary">
+  <div class="sec-title">Glossary — key terms to know</div>
+  <div class="sec-sub">Definitions for the terms you'll hear daily. Each has a plain-English analogy tied to things you already know.</div>
+
+  <div class="glossary-grid">
+
+    <div class="gloss-card">
+      <div class="gloss-term">Data Lakehouse</div>
+      <div class="gloss-def">An architecture that combines the cheap storage of a Data Lake with the reliability and query performance of a Data Warehouse. You store raw files in cloud storage but layer ACID transactions on top so it behaves like a database.</div>
+      <div class="gloss-analogy">Analogy: A messy warehouse (lake) that has been given a proper inventory system and aisle labels (warehouse features).</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">ETL / ELT</div>
+      <div class="gloss-def">ETL = Extract, Transform, Load. You pull data from a source, clean/shape it, then load it to a destination. ELT = Extract, Load, Transform — load raw first, transform inside the warehouse. Modern cloud stacks mostly use ELT because compute is cheap.</div>
+      <div class="gloss-analogy">Analogy: ETL is like cooking before serving. ELT is like serving raw ingredients and cooking at the table.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Medallion architecture</div>
+      <div class="gloss-def">A data design pattern with three layers — Bronze (raw, untouched), Silver (cleaned and validated), Gold (aggregated, business-ready). Each layer adds trust and structure to the data.</div>
+      <div class="gloss-analogy">Analogy: Like refining ore — raw rock (Bronze) → purified metal (Silver) → finished product (Gold).</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Data ingestion pipeline</div>
+      <div class="gloss-def">Automated code that moves data from a source system (database, API, file) into your data platform on a schedule or in real-time. The main job responsibility — you'll build many of these.</div>
+      <div class="gloss-analogy">Analogy: Like an assembly line that automatically collects packages from many suppliers and puts them in your warehouse.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">ACID transactions</div>
+      <div class="gloss-def">Atomic, Consistent, Isolated, Durable. A guarantee that database operations either fully succeed or fully fail — no partial writes. Critical for data reliability when multiple processes write simultaneously.</div>
+      <div class="gloss-analogy">Analogy: Like a bank transfer — either both accounts update or neither does. Never half-done.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Time travel (data)</div>
+      <div class="gloss-def">The ability to query a table as it existed at a specific point in the past. Powered by Delta Lake and Iceberg transaction logs. Lets you audit changes, recover from bad writes, or reproduce historical reports.</div>
+      <div class="gloss-analogy">Analogy: Like Git history for your data — you can checkout any past commit.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Schema evolution</div>
+      <div class="gloss-def">The ability to add, rename, or change columns in a table without breaking existing pipelines or readers. Iceberg and Delta Lake handle this automatically — traditional Parquet does not.</div>
+      <div class="gloss-analogy">Analogy: Like adding a new column to a Pandas DataFrame without crashing every script that was already reading it.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Structured Streaming</div>
+      <div class="gloss-def">Apache Spark's engine for processing continuous streams of data using the same DataFrame API as batch processing. You define a query once — Spark runs it continuously as new data arrives.</div>
+      <div class="gloss-analogy">Analogy: Like a Pandas script that doesn't stop — it processes each new row the moment it arrives, forever.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Virtual warehouse (Snowflake)</div>
+      <div class="gloss-def">Snowflake's term for a compute cluster. You can spin up multiple warehouses of different sizes and pause them when not in use — you only pay while running. This separation of storage and compute is Snowflake's core innovation.</div>
+      <div class="gloss-analogy">Analogy: Like renting different-sized CPU from a cloud — small for reports, XL for heavy transformations, then shut it off.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">RBAC (Role-Based Access Control)</div>
+      <div class="gloss-def">A security model where permissions are assigned to roles (not individual people), and users are assigned roles. In Azure, roles control who can read/write/delete specific resources. Required for enterprise data security compliance.</div>
+      <div class="gloss-analogy">Analogy: Like a job title system — "admin" can do everything, "analyst" can only read. You assign titles, not individual permissions.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Managed identity</div>
+      <div class="gloss-def">An Azure feature that gives a cloud service (like Databricks) its own identity to authenticate to other services (like ADLS) — without storing any passwords or keys in your code. The safest way to connect Azure services.</div>
+      <div class="gloss-analogy">Analogy: Like a staff badge that automatically opens the doors you're allowed in — no keys to lose or share.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Agile / Sprint</div>
+      <div class="gloss-def">Agile is a work methodology using short delivery cycles called sprints (usually 2 weeks). Each sprint has a planning meeting, daily standups, and a retrospective. Work is broken into user stories with clear acceptance criteria.</div>
+      <div class="gloss-analogy">Analogy: Instead of building the whole product then shipping, you build and ship a small working slice every 2 weeks.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">CI/CD pipeline</div>
+      <div class="gloss-def">Continuous Integration / Continuous Delivery. Automated process: when you push code → tests run automatically → if they pass → code deploys automatically. In Azure DevOps this is a YAML file defining these steps.</div>
+      <div class="gloss-analogy">Analogy: Like a quality checkpoint belt — every new item on the belt gets automatically tested before reaching the customer.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Data Lake (ADLS Gen2)</div>
+      <div class="gloss-def">Azure Data Lake Storage Gen2 — a hierarchical file system in Azure for storing any type of data (structured, semi-structured, unstructured) at massive scale at very low cost. The foundation of your data architecture.</div>
+      <div class="gloss-analogy">Analogy: Like a massive hard drive in the cloud — you dump everything in and organize it with folders. Much cheaper than a database per GB.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Proof of concept (POC)</div>
+      <div class="gloss-def">A small, fast prototype built to test whether a technical approach works before committing to building the full production system. The job mentions conducting POCs with bottlers — you build a mini version, measure value, then productionize.</div>
+      <div class="gloss-analogy">Analogy: Like a cooking trial run before cooking for 100 guests — you validate the recipe works first.</div>
+    </div>
+
+    <div class="gloss-card">
+      <div class="gloss-term">Lazy evaluation (Spark)</div>
+      <div class="gloss-def">Spark doesn't execute your DataFrame transformations immediately — it builds a plan of what to do. Execution only happens when you call an action like .show(), .count(), or .write(). This is the biggest mental shift from Pandas.</div>
+      <div class="gloss-analogy">Analogy: Like writing a recipe vs actually cooking. Spark writes the recipe as you type, but only cooks when you say "serve it."</div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+var state = { w1:[], w2:[], w3:[], w4:[] };
+var totals = { w1:10, w2:10, w3:10, w4:10 };
+
+function toggleCheck(el, week) {
+  var box = el.querySelector('.check-box');
+  var txt = el.querySelector('.check-text');
+  var idx = Array.from(el.parentElement.querySelectorAll('.check-item')).indexOf(el);
+  var si = state[week].indexOf(idx);
+  if (si === -1) { state[week].push(idx); box.classList.add('checked'); txt.classList.add('checked-text'); }
+  else { state[week].splice(si,1); box.classList.remove('checked'); txt.classList.remove('checked-text'); }
+  updateProgress();
+}
+
+function updateProgress() {
+  var total = totals.w1 + totals.w2 + totals.w3 + totals.w4;
+  var done = state.w1.length + state.w2.length + state.w3.length + state.w4.length;
+  var pct = Math.round(done/total*100);
+  document.getElementById('overall-pct').textContent = pct + '%';
+  document.getElementById('overall-bar').style.width = pct + '%';
+  document.getElementById('overall-tasks').textContent = done + ' / ' + total + ' tasks done';
+  document.getElementById('dash-done').textContent = done;
+  var weeks = ['w1','w2','w3','w4'];
+  weeks.forEach(function(w,i) {
+    var p = Math.round(state[w].length / totals[w] * 100);
+    document.getElementById('wb'+(i+1)).style.width = p + '%';
+    document.getElementById('wp'+(i+1)).textContent = p + '%';
+  });
+}
+
+function show(page) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('visible'); });
+  document.getElementById('section-' + page).classList.add('visible');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
+}
+
+updateProgress();
+</script>
+</body>
+</html>
